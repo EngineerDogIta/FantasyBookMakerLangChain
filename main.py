@@ -26,6 +26,8 @@ Include:
 - Culture of the inhabitants
 - Triggering event
 - Complex antagonist
+
+After generating the ideas, summarize them in one sentence.
 """)
 
 idea_chain = idea_prompt | creative_llm
@@ -34,9 +36,9 @@ story_ideas = idea_chain.invoke({
     "theme": "Create a fantasy story set in a completely original world. Describe in detail the landscape, magical creatures, and cultures that inhabit it. The protagonist should be an unusual character, such as an inventor of magical artifacts or a guardian of living ancient libraries. Start the story with an extraordinary event that disrupts the balance of the world, such as the appearance of a comet that grants unpredictable powers or the discovery of a submerged city. Develop an engaging plot that includes mysteries to solve, unlikely alliances, and a great antagonist with complex motivations. Conclude the story with a twist that leaves the reader reflecting on the meaning of magic and destiny."
 })
 
-print("✅ Story ideas generated.")
+print(f"💡 Story ideas generated. Summary: {story_ideas[:100]}...") # Print a snippet of the ideas
 
-# Fase 2: Verifica iniziale 
+# Fase 2: Verifica iniziale
 story_prompt = PromptTemplate.from_template("""
 Based on these ideas, create a brief synopsis of a fantasy story in English (300 words):
 {ideas}
@@ -52,7 +54,7 @@ It must include:
 story_chain = story_prompt | creative_llm
 print("📖 Generating synopsis...")
 story_synopsis = story_chain.invoke({"ideas": story_ideas})
-print("✅ Synopsis generated.")
+print(f"📜 Synopsis generated. Summary: {story_synopsis[:100]}...") # Print a snippet of the synopsis
 
 # Fase 3: Verifica qualità
 verification_prompt = PromptTemplate.from_template("""
@@ -71,13 +73,13 @@ Provide a detailed report with strengths and improvements:
 verification_chain = verification_prompt | quality_llm
 print("🔍 Generating verification report...")
 verification_report = verification_chain.invoke({"story": story_synopsis})
-print("✅ Verification report generated.")
+print(f"🔎 Verification report generated. Summary: {verification_report[:100]}...") # Print a snippet of the report
 
 # Fase 4: Controllo finale
 final_check_prompt = PromptTemplate.from_template("""
 Does the following synopsis meet all these requirements? (Answer ONLY with YES/NO)
 - Original setting
-- Unusual protagonist 
+- Unusual protagonist
 - Initial extraordinary event
 - Complex antagonist
 - Final twist
@@ -91,63 +93,62 @@ print("✅ Performing final check...")
 approval = final_check_chain.invoke({"story": story_synopsis})
 
 is_approved = "yes" in approval.lower()
-print("✅ Final check complete.")
-print("APPROVED" if is_approved else "NOT APPROVED")
+print(f"✅ Final check complete. Approved: {'YES' if is_approved else 'NO'}")
 
 # Se la storia è approvata, procediamo con la strutturazione in capitoli
 if is_approved:
     # Fase 5: Strutturazione in capitoli
     structure_prompt = PromptTemplate.from_template("""
     Create a detailed structure for a fantasy book with 5-7 chapters based on this synopsis.
-    
+
     For each chapter, provide:
     1. An engaging title
     2. A brief synopsis (3-4 sentences)
     3. Key events that must occur in the chapter
     4. Characters involved
-    
+
     Start with a general title for the book.
-    
+
     Synopsis:
     {story}
-    
+
     Format the response like this:
     TITLE: [Book Title]
-    
+
     CHAPTER 1: [Chapter Title]
     SYNOPSIS: [Brief chapter synopsis]
     KEY EVENTS: [List of key events]
     CHARACTERS: [List of characters involved]
-    
+
     CHAPTER 2: ...
     """)
-    
+
     structure_chain = structure_prompt | structure_llm
     print("📚 Generating book structure...")
     book_structure = structure_chain.invoke({"story": story_synopsis})
-    print("✅ Book structure generated.")
-    
+    print(f"🗂️ Book structure generated. Summary: {book_structure[:100]}...") # Print a snippet of the structure
+
     # Estrai il titolo del libro
     book_title_match = re.search(r"TITLE:\s*(.+?)(?:\n|$)", book_structure)
     book_title = "Fantasy_Book"
     if book_title_match:
         book_title = book_title_match.group(1).strip()
         book_title = re.sub(r'[\\/*?:"<>|]', "_", book_title)  # Sanitizza nome file
-    
+
     # Crea directory per il libro
     book_dir = os.path.join("generated", book_title)
     os.makedirs(book_dir, exist_ok=True)
-    
+
     # Salva la struttura del libro
     with open(os.path.join(book_dir, "structure.md"), "w", encoding="utf-8") as f:
         f.write(book_structure)
     print(f"💾 Book structure saved to {os.path.join(book_dir, 'structure.md')}")
-    
+
     # Estrai capitoli dalla struttura
     chapter_pattern = r"CHAPTER (\d+): ([^\n]+)\nSYNOPSIS: ([^\n]+(?:\n[^\n]+)*?)(?=\nKEY EVENTS:|\n\nCHAPTER|\Z)"
     chapters = re.findall(chapter_pattern, book_structure, re.DOTALL)
-    
-   # Fase 6: Generazione e verifica dei capitoli
+
+    # Fase 6: Generazione e verifica dei capitoli
     for chapter_num, chapter_title, chapter_synopsis in chapters:
         print(f"\n🖋️ Generating Chapter {chapter_num}: {chapter_title}")
 
@@ -165,7 +166,7 @@ if is_approved:
 
             This chapter must follow this synopsis: {chapter_synopsis}
 
-            The chapter must be consistent with the overall story and previous chapters.
+            This chapter must be consistent with the overall story and previous chapters.
             Write in English, with rich descriptions, engaging dialogues, and emotional depth.
             The chapter should be about 500-700 words.
 
@@ -180,7 +181,7 @@ if is_approved:
                     "chapter_title": chapter_title,
                     "chapter_synopsis": chapter_synopsis
                 })
-                print("  ✅ Chapter draft generated.")
+                print(f"  ✅ Chapter draft generated. Summary: {chapter_content_draft[:100]}...")
             except Exception as e:
                 print(f"  ❌ Error generating chapter draft: {e}")
                 chapter_content_draft = None
@@ -209,7 +210,7 @@ if is_approved:
                     "chapter_synopsis": chapter_synopsis,
                     "chapter_content": chapter_content_draft
                 })
-                print("  ✅ Chapter draft verified.")
+                print(f"  ✅ Chapter draft verified. Summary: {chapter_verification[:100]}...")
             except Exception as e:
                 print(f"  ❌ Error verifying chapter draft: {e}")
                 chapter_verification = "NO - Error during verification"
@@ -244,7 +245,7 @@ if is_approved:
                         "chapter_synopsis": chapter_synopsis,
                         "chapter_content_draft": chapter_content_draft
                     })
-                    print("  ✅ Final chapter content generated.")
+                    print(f"  ✅ Final chapter content generated. Summary: {chapter_content[:100]}...")
                 except Exception as e:
                     print(f"  ❌ Error generating final chapter: {e}")
                     chapter_content = None
@@ -266,7 +267,7 @@ if is_approved:
 
         if not chapter_approved:
             print(f"  ⚠️ Unable to generate an approved version of Chapter {chapter_num} after {max_attempts} attempts")
-    
+
     print(f"\n📕 Book generation completed! Files saved in {book_dir}")
 else:
     print("Book generation cancelled because the initial synopsis was not approved.")
