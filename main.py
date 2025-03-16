@@ -174,12 +174,17 @@ if is_approved:
 
             chapter_chain = chapter_prompt | chapter_llm
             print("  ✍️ Generating chapter draft...")
-            chapter_content_draft = chapter_chain.invoke({
-                "chapter_num": chapter_num,
-                "chapter_title": chapter_title,
-                "chapter_synopsis": chapter_synopsis
-            })
-            print("  ✅ Chapter draft generated.")
+            try:
+                chapter_content_draft = chapter_chain.invoke({
+                    "chapter_num": chapter_num,
+                    "chapter_title": chapter_title,
+                    "chapter_synopsis": chapter_synopsis
+                })
+                print("  ✅ Chapter draft generated.")
+            except Exception as e:
+                print(f"  ❌ Error generating chapter draft: {e}")
+                chapter_content_draft = None
+                continue # Skip to the next attempt
 
             # Verifica del capitolo (Draft)
             chapter_verification_prompt = PromptTemplate.from_template("""
@@ -197,13 +202,18 @@ if is_approved:
 
             chapter_verification_chain = chapter_verification_prompt | chapter_verifier_llm
             print("  🔍 Verifying chapter draft...")
-            chapter_verification = chapter_verification_chain.invoke({
-                "chapter_num": chapter_num,
-                "chapter_title": chapter_title,
-                "chapter_synopsis": chapter_synopsis,
-                "chapter_content": chapter_content_draft
-            })
-            print("  ✅ Chapter draft verified.")
+            try:
+                chapter_verification = chapter_verification_chain.invoke({
+                    "chapter_num": chapter_num,
+                    "chapter_title": chapter_title,
+                    "chapter_synopsis": chapter_synopsis,
+                    "chapter_content": chapter_content_draft
+                })
+                print("  ✅ Chapter draft verified.")
+            except Exception as e:
+                print(f"  ❌ Error verifying chapter draft: {e}")
+                chapter_verification = "NO - Error during verification"
+                continue # Skip to the next attempt
 
             print(f"  Verification result: {chapter_verification}")
 
@@ -227,18 +237,30 @@ if is_approved:
 
                 chapter_chain_final = chapter_prompt_final | chapter_llm
                 print("  ✍️ Generating final chapter content...")
-                chapter_content = chapter_chain_final.invoke({
-                    "chapter_num": chapter_num,
-                    "chapter_title": chapter_title,
-                    "chapter_synopsis": chapter_synopsis,
-                    "chapter_content_draft": chapter_content_draft
-                })
-                print("  ✅ Final chapter content generated.")
+                try:
+                    chapter_content = chapter_chain_final.invoke({
+                        "chapter_num": chapter_num,
+                        "chapter_title": chapter_title,
+                        "chapter_synopsis": chapter_synopsis,
+                        "chapter_content_draft": chapter_content_draft
+                    })
+                    print("  ✅ Final chapter content generated.")
+                except Exception as e:
+                    print(f"  ❌ Error generating final chapter: {e}")
+                    chapter_content = None
+                    chapter_approved = False # Ensure it retries
                 # Salva il capitolo approvato
-                chapter_filename = f"{chapter_num}.md"
-                with open(os.path.join(book_dir, chapter_filename), "w", encoding="utf-8") as f:
-                    f.write(f"# {chapter_title}\n\n{chapter_content}")
-                print(f"  ✅ Chapter {chapter_num} approved and saved")
+                if chapter_content:
+                    chapter_filename = f"{chapter_num}.md"
+                    chapter_path = os.path.join(book_dir, chapter_filename)
+                    try:
+                        with open(chapter_path, "w", encoding="utf-8") as f:
+                            f.write(f"# {chapter_title}\n\n{chapter_content}")
+                        print(f"  ✅ Chapter {chapter_num} approved and saved to {chapter_path}")
+                    except Exception as e:
+                        print(f"  ❌ Error saving chapter {chapter_num} to {chapter_path}: {e}")
+                        chapter_approved = False # Ensure it retries
+
             else:
                 print(f"  ❌ Chapter {chapter_num} rejected. Regenerating...")
 
