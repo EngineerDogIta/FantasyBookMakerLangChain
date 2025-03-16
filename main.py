@@ -3,13 +3,18 @@ from langchain_core.prompts import PromptTemplate
 import os
 import re
 
+# Function to initialize Ollama models
+def initialize_ollama_model(model_name):
+    """Initializes an Ollama model with a given name and returns it."""
+    return Ollama(base_url="http://localhost:11434", model=model_name)
+
 # Inizializzazione modelli Ollama per le diverse fasi
-creative_llm = Ollama(base_url="http://localhost:11434", model="deepseek-r1:1.5b")
-quality_llm = Ollama(base_url="http://localhost:11434", model="gemma3:1b")
-verifier_llm = Ollama(base_url="http://localhost:11434", model="gemma3:1b")
-structure_llm = Ollama(base_url="http://localhost:11434", model="deepseek-r1:1.5b")
-chapter_llm = Ollama(base_url="http://localhost:11434", model="deepseek-r1:1.5b")
-chapter_verifier_llm = Ollama(base_url="http://localhost:11434", model="gemma3:1b")
+creative_llm = initialize_ollama_model("deepseek-r1:1.5b")
+quality_llm = initialize_ollama_model("gemma3:1b")
+verifier_llm = initialize_ollama_model("gemma3:1b")
+structure_llm = initialize_ollama_model("deepseek-r1:1.5b")
+chapter_llm = initialize_ollama_model("mistral:latest") # Changed to mistral:latest for chapter generation
+chapter_verifier_llm = initialize_ollama_model("gemma3:1b")
 
 # Fase 1: Generazione idee
 idea_prompt = PromptTemplate.from_template("""
@@ -24,12 +29,12 @@ Include:
 """)
 
 idea_chain = idea_prompt | creative_llm
+print("🎨 Generating story ideas...")
 story_ideas = idea_chain.invoke({
     "theme": "Create a fantasy story set in a completely original world. Describe in detail the landscape, magical creatures, and cultures that inhabit it. The protagonist should be an unusual character, such as an inventor of magical artifacts or a guardian of living ancient libraries. Start the story with an extraordinary event that disrupts the balance of the world, such as the appearance of a comet that grants unpredictable powers or the discovery of a submerged city. Develop an engaging plot that includes mysteries to solve, unlikely alliances, and a great antagonist with complex motivations. Conclude the story with a twist that leaves the reader reflecting on the meaning of magic and destiny."
 })
 
-print("🎨 Generated ideas:")
-print(story_ideas)
+print("✅ Story ideas generated.")
 
 # Fase 2: Verifica iniziale 
 story_prompt = PromptTemplate.from_template("""
@@ -45,10 +50,9 @@ It must include:
 """)
 
 story_chain = story_prompt | creative_llm
+print("📖 Generating synopsis...")
 story_synopsis = story_chain.invoke({"ideas": story_ideas})
-
-print("\n📖 Generated synopsis:")
-print(story_synopsis)
+print("✅ Synopsis generated.")
 
 # Fase 3: Verifica qualità
 verification_prompt = PromptTemplate.from_template("""
@@ -65,10 +69,9 @@ Provide a detailed report with strengths and improvements:
 """)
 
 verification_chain = verification_prompt | quality_llm
+print("🔍 Generating verification report...")
 verification_report = verification_chain.invoke({"story": story_synopsis})
-
-print("\n🔍 Verification report:")
-print(verification_report)
+print("✅ Verification report generated.")
 
 # Fase 4: Controllo finale
 final_check_prompt = PromptTemplate.from_template("""
@@ -84,10 +87,11 @@ Synopsis:
 Answer:""")
 
 final_check_chain = final_check_prompt | verifier_llm
+print("✅ Performing final check...")
 approval = final_check_chain.invoke({"story": story_synopsis})
 
 is_approved = "yes" in approval.lower()
-print("\n✅ Final check result:")
+print("✅ Final check complete.")
 print("APPROVED" if is_approved else "NOT APPROVED")
 
 # Se la storia è approvata, procediamo con la strutturazione in capitoli
@@ -119,10 +123,9 @@ if is_approved:
     """)
     
     structure_chain = structure_prompt | structure_llm
+    print("📚 Generating book structure...")
     book_structure = structure_chain.invoke({"story": story_synopsis})
-    
-    print("\n📚 Book structure:")
-    print(book_structure)
+    print("✅ Book structure generated.")
     
     # Estrai il titolo del libro
     book_title_match = re.search(r"TITLE:\s*(.+?)(?:\n|$)", book_structure)
@@ -138,71 +141,99 @@ if is_approved:
     # Salva la struttura del libro
     with open(os.path.join(book_dir, "structure.md"), "w", encoding="utf-8") as f:
         f.write(book_structure)
+    print(f"💾 Book structure saved to {os.path.join(book_dir, 'structure.md')}")
     
     # Estrai capitoli dalla struttura
     chapter_pattern = r"CHAPTER (\d+): ([^\n]+)\nSYNOPSIS: ([^\n]+(?:\n[^\n]+)*?)(?=\nKEY EVENTS:|\n\nCHAPTER|\Z)"
     chapters = re.findall(chapter_pattern, book_structure, re.DOTALL)
     
-    # Fase 6: Generazione e verifica dei capitoli
+   # Fase 6: Generazione e verifica dei capitoli
     for chapter_num, chapter_title, chapter_synopsis in chapters:
         print(f"\n🖋️ Generating Chapter {chapter_num}: {chapter_title}")
-        
+
         chapter_approved = False
         max_attempts = 3
         attempt = 0
-        
+
         while not chapter_approved and attempt < max_attempts:
             attempt += 1
             print(f"  Attempt {attempt}/{max_attempts}")
-            
-            # Generazione del capitolo
+
+            # Generazione del capitolo (Draft)
             chapter_prompt = PromptTemplate.from_template("""
-            Write Chapter {chapter_num}: {chapter_title} for the fantasy book.
-            
+            DRAFT: Write Chapter {chapter_num}: {chapter_title} for the fantasy book.
+
             This chapter must follow this synopsis: {chapter_synopsis}
-            
+
             The chapter must be consistent with the overall story and previous chapters.
             Write in English, with rich descriptions, engaging dialogues, and emotional depth.
-            The chapter should be about 1500-2000 words.
-            
+            The chapter should be about 500-700 words.
+
             Write only the content of the chapter, without including the chapter number or title.
             """)
-            
+
             chapter_chain = chapter_prompt | chapter_llm
-            chapter_content = chapter_chain.invoke({
+            print("  ✍️ Generating chapter draft...")
+            chapter_content_draft = chapter_chain.invoke({
                 "chapter_num": chapter_num,
                 "chapter_title": chapter_title,
                 "chapter_synopsis": chapter_synopsis
             })
-            
-            # Verifica del capitolo
+            print("  ✅ Chapter draft generated.")
+
+            # Verifica del capitolo (Draft)
             chapter_verification_prompt = PromptTemplate.from_template("""
-            Verify if this chapter is consistent with the synopsis and overall story.
-            
+            Verify if this chapter draft is consistent with the synopsis and overall story.
+
             Chapter Number: {chapter_num}
             Chapter Title: {chapter_title}
             Chapter Synopsis: {chapter_synopsis}
-            
+
             Chapter Content:
             {chapter_content}
-            
+
             Respond ONLY with YES or NO, followed by a brief explanation:
             """)
-            
+
             chapter_verification_chain = chapter_verification_prompt | chapter_verifier_llm
+            print("  🔍 Verifying chapter draft...")
             chapter_verification = chapter_verification_chain.invoke({
                 "chapter_num": chapter_num,
                 "chapter_title": chapter_title,
                 "chapter_synopsis": chapter_synopsis,
-                "chapter_content": chapter_content
+                "chapter_content": chapter_content_draft
             })
-            
+            print("  ✅ Chapter draft verified.")
+
             print(f"  Verification result: {chapter_verification}")
-            
+
             # Controlla se il capitolo è approvato
             chapter_approved = "yes" in chapter_verification.lower()
-            
+
             if chapter_approved:
+                # Generazione del capitolo (Final)
+                chapter_prompt_final = PromptTemplate.from_template("""
+                FINAL: Write Chapter {chapter_num}: {chapter_title} for the fantasy book.
+
+                This chapter must follow this synopsis: {chapter_synopsis}
+
+                This chapter must be consistent with the overall story and previous chapters.
+                Write in English, with rich descriptions, engaging dialogues, and emotional depth.
+                The chapter should be about 1500-2000 words.
+
+                Write only the content of the chapter, without including the chapter number or title.
+                Take inspiration from the following draft: {chapter_content_draft}
+                """)
+
+                chapter_chain_final = chapter_prompt_final | chapter_llm
+                print("  ✍️ Generating final chapter content...")
+                chapter_content = chapter_chain_final.invoke({
+                    "chapter_num": chapter_num,
+                    "chapter_title": chapter_title,
+                    "chapter_synopsis": chapter_synopsis,
+                    "chapter_content_draft": chapter_content_draft
+                })
+                print("  ✅ Final chapter content generated.")
                 # Salva il capitolo approvato
                 chapter_filename = f"{chapter_num}.md"
                 with open(os.path.join(book_dir, chapter_filename), "w", encoding="utf-8") as f:
@@ -210,7 +241,7 @@ if is_approved:
                 print(f"  ✅ Chapter {chapter_num} approved and saved")
             else:
                 print(f"  ❌ Chapter {chapter_num} rejected. Regenerating...")
-        
+
         if not chapter_approved:
             print(f"  ⚠️ Unable to generate an approved version of Chapter {chapter_num} after {max_attempts} attempts")
     
