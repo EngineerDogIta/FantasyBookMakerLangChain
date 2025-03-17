@@ -24,7 +24,7 @@ def initialize_ollama_model(model_name):
 creative_llm = initialize_ollama_model("deepseek-r1:1.5b")
 quality_llm = initialize_ollama_model("gemma3:1b")
 verifier_llm = initialize_ollama_model("gemma3:1b")
-structure_llm = initialize_ollama_model("deepseek-r1:1.5b")
+structure_llm = initialize_ollama_model("gemma3:1b")
 chapter_llm = initialize_ollama_model("mistral:latest")  # Changed to mistral:latest for chapter generation
 chapter_verifier_llm = initialize_ollama_model("gemma3:1b")
 
@@ -90,8 +90,16 @@ if is_approved:
     print(f"💾 Book structure saved to {os.path.join(book_dir, 'structure.md')}")
 
     # Extract chapters from structure
-    chapter_pattern = r"CHAPTER (\d+): ([^\n]+)\nSYNOPSIS: ([^\n]+(?:\n[^\n]+)*?)(?=\nKEY EVENTS:|\n\nCHAPTER|\Z)"
+    chapter_pattern = r"CHAPTER\s+(\d+):\s+([^\n]+)\s*\nSYNOPSIS:\s+([^K]+?)(?=\s*KEY EVENTS:|\s*\nCHAPTER|\s*$)"
     chapters = re.findall(chapter_pattern, book_structure, re.DOTALL)
+
+    # Clean up extracted synopses by removing extra whitespace
+    chapters = [(num, title.strip(), synopsis.strip()) for num, title, synopsis in chapters]
+
+    # Debug output to verify extraction
+    print(f"📊 Found {len(chapters)} chapters in the structure")
+    for i, (num, title, synopsis) in enumerate(chapters):
+        print(f"  Chapter {num}: {title} - Synopsis length: {len(synopsis)} chars")
 
     # Phase 6: Chapter generation and verification
     for chapter_num, chapter_title, chapter_synopsis in chapters:
