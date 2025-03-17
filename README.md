@@ -1,20 +1,28 @@
 # Fantasy Book Generator
 
+![Python Version](https://img.shields.io/badge/python-3.13.2-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![GitHub Issues](https://img.shields.io/github/issues/EngineerDogIta/fantasy-book-generator)
+
 This project generates a fantasy book using Large Language Models (LLMs) from the LangChain community. The process involves generating story ideas, creating a synopsis, structuring chapters, and drafting and verifying chapter content.
 
 ## Project Structure
 
-```
-.
-├── .gitignore
-├── main.py
-├── prompts.py
-├── generated/
-```
+The repository contains the following key files and folders:
+
+- **main.py**: The main script that orchestrates the story generation process.
+- **prompts.py**: Contains the prompt templates for various phases (idea generation, synopsis, quality verification, etc.).
+- **generated/**: When the `main.py` script is executed and a synopsis is approved, this folder is created (if it doesn't already exist) with:
+  - A subdirectory named after the book title (e.g., `Echoes of the Veil`), containing:
+    - `structure.md`: A file outlining the detailed book structure and chapter breakdown.
+    - One Markdown file per chapter (e.g., `1.md`, `2.md`, etc.) with the final polished chapter content.
+- **README.md**: This documentation file.
+- **requirements.txt**: Lists the required dependencies for the project.
+- **LICENSE**: The project’s license file.
 
 ## Requirements
 
-- Python 3.8 or higher
+- Python 3.13.2 or higher
 - LangChain library
 - Ollama models
 
@@ -31,14 +39,20 @@ This project generates a fantasy book using Large Language Models (LLMs) from th
     pip install -r requirements.txt
     ```
 
-3. Ensure the Ollama models are running locally on `http://localhost:11434`.
+3. Install Ollama and the required models:
+    - Download and install [Ollama](https://ollama.ai) following their official instructions.
+    - Ensure the following models are installed and available:
+        - deepseek-r1:1.5b
+        - gemma3:1b
+        - mistral:latest
+    - Start the Ollama models locally on `http://localhost:11434`.
 
 ## Usage
 
 To generate a fantasy book, run the `main.py` script:
-```sh
-python main.py
-```
+    ```sh
+    python main.py
+    ```
 
 The script will go through the following phases:
 
@@ -50,7 +64,7 @@ The script will go through the following phases:
 6. **Chapter Generation and Verification**: Drafts and verifies each chapter based on the structure.
 7. **Final Chapter Generation**: Produces a polished final version of each chapter.
 
-Generated content will be saved in the `generated/` directory.
+Generated content will be saved in the `generated/` directory under a subfolder corresponding to the book title.
 
 ## Prompts
 
