@@ -90,11 +90,11 @@ if is_approved:
     print(f"💾 Book structure saved to {os.path.join(book_dir, 'structure.md')}")
 
     # Extract chapters from structure
-    chapter_pattern = r"CHAPTER\s+(\d+):\s+([^\n]+)\s*\nSYNOPSIS:\s+([^K]+?)(?=\s*KEY EVENTS:|\s*\nCHAPTER|\s*$)"
+    chapter_pattern = r"(\*{,2}|\n)CHAPTER\s+(\d+):\s+([^\n]+)\s*\n([\s\S]+?)(?=\n\s*(\*{,2}|\n)CHAPTER|\Z)"
     chapters = re.findall(chapter_pattern, book_structure, re.DOTALL)
 
     # Clean up extracted synopses by removing extra whitespace
-    chapters = [(num, title.strip(), synopsis.strip()) for num, title, synopsis in chapters]
+    chapters = [(num, title.strip(), synopsis.strip()) for _, num, title, synopsis, _ in chapters]
 
     # Debug output to verify extraction
     print(f"📊 Found {len(chapters)} chapters in the structure")
