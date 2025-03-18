@@ -82,3 +82,11 @@ The prompts used for generating and verifying content are defined in `prompts.py
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## LLMs to Pull from Ollama
+
+Ensure the following LLMs are pulled and available from Ollama:
+
+- `deepseek-r1:1.5b` for creative idea generation
+- `gemma3:1b` for quality verification and structure generation
+- `mistral:latest` for chapter generation
