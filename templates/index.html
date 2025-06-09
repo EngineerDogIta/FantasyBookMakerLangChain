@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Book Maker</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        .card-header {
+            background-color: #6f42c1;
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.5rem;
+        }
+        .btn-primary {
+            background-color: #6f42c1;
+            border-color: #6f42c1;
+        }
+        .btn-primary:hover {
+            background-color: #5a32a3;
+            border-color: #5a32a3;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">Fantasy Book Maker</h2>
+                    <span class="badge bg-light text-dark">Beta</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs mb-4" id="editorTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit" type="button" role="tab" aria-controls="edit" aria-selected="true">
+                            <i class="bi bi-pencil-square me-1"></i>Editor
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview" type="button" role="tab" aria-controls="preview" aria-selected="false">
+                            <i class="bi bi-eye me-1"></i>Anteprima
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="editorTabsContent">
+                    <div class="tab-pane fade show active" id="edit" role="tabpanel" aria-labelledby="edit-tab">
+                        <div class="mb-4">
+                            <label for="storyInput" class="form-label">Racconta la tua storia</label>
+                            <textarea class="form-control" id="storyInput" rows="10" placeholder="Scrivi qui il tuo racconto o le tue idee..."></textarea>
+                            <div class="form-text d-flex justify-content-between">
+                                <span id="wordCount">0 parole</span>
+                                <span id="charCount">0 caratteri</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="preview" role="tabpanel" aria-labelledby="preview-tab">
+                        <div class="preview-container p-3 border rounded" style="min-height: 200px;" id="storyPreview">
+                            <p class="text-muted fst-italic">L'anteprima apparirà qui...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <label class="form-label mb-0">Genera un libro fantasy con l'AI</label>
+                            <small id="lastSavedTime" class="text-muted d-block">Mai salvato</small>
+                        </div>
+                        <div>
+                            <span id="connectionStatus" class="badge bg-success" title="Stato di connessione">
+                                <i class="bi bi-wifi"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button class="btn btn-primary me-md-2" type="button">
+                            <i class="bi bi-magic me-2"></i>Genera Storia
+                        </button>
+                        <button id="saveButton" class="btn btn-success me-md-2" type="button" title="Salva ora">
+                            <i class="bi bi-save me-2"></i>Salva
+                        </button>
+                        <button id="clearButton" class="btn btn-outline-danger" type="button" title="Cancella tutto">
+                            <i class="bi bi-trash me-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0">Le tue storie</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                La Spada degli Antichi
+                                <span class="badge bg-primary rounded-pill">In corso</span>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">Il Regno Perduto</a>
+                            <a href="#" class="list-group-item list-group-item-action">L'Ultimo Mago</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0">Statistiche</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <div>
+                                <h6 class="mb-0">Storie create</h6>
+                                <span class="h3">12</span>
+                            </div>
+                            <div class="text-end">
+                                <h6 class="mb-0">Parole scritte</h6>
+                                <span class="h3">24,578</span>
+                            </div>
+                        </div>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+                        </div>
+                        <p class="text-muted small mb-0">Hai completato il 75% dell'obiettivo mensile</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const storyInput = document.getElementById('storyInput');
+            const storyPreview = document.getElementById('storyPreview');
+            const wordCount = document.getElementById('wordCount');
+            const charCount = document.getElementById('charCount');
+            const previewTab = document.getElementById('preview-tab');
+            
+            // Formattazione Markdown di base
+            function formatText(text) {
+                // Intestazioni
+                text = text.replace(/^### (.*$)/gm, '<h5 class="mt-3">$1</h5>');
+                text = text.replace(/^## (.*$)/gm, '<h4 class="mt-4">$1</h4>');
+                text = text.replace(/^# (.*$)/gm, '<h3 class="mt-4">$1</h3>');
+                
+                // Grassetto e corsivo
+                text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                
+                // Liste
+                text = text.replace(/^\s*\* (.*$)/gm, '<li>$1</li>');
+                text = text.replace(/(<li>.*<\/li>)/gs, '<ul class="mb-3">$1</ul>');
+                
+                // Paragrafi
+                text = text.replace(/\n\n/g, '</p><p>');
+                text = '<p>' + text + '</p>';
+                
+                // Link
+                text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+                
+                return text || '<p class="text-muted fst-italic">Inizia a scrivere per vedere l\'anteprima...</p>';
+            }
+            
+            // Aggiorna conteggio parole e caratteri
+            function updateCounts() {
+                const text = storyInput.value;
+                const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+                wordCount.textContent = `${words} ${words === 1 ? 'parola' : 'parole'}`;
+                charCount.textContent = `${text.length} caratteri`;
+            }
+            
+            // Aggiorna anteprima in tempo reale
+            function updatePreview() {
+                storyPreview.innerHTML = formatText(storyInput.value);
+                updateCounts();
+            }
+            
+            // Aggiorna l'anteprima quando l'utente digita
+            storyInput.addEventListener('input', updatePreview);
+            
+            // Aggiorna l'anteprima quando si cambia scheda
+            previewTab.addEventListener('shown.bs.tab', updatePreview);
+            
+            // Gestione dello stato di connessione
+            function updateOnlineStatus() {
+                isOnline = navigator.onLine;
+                const statusElement = document.getElementById('connectionStatus');
+                
+                if (isOnline) {
+                    statusElement.className = 'badge bg-success';
+                    statusElement.title = 'Online';
+                    // Se ci sono modifiche in sospeso, sincronizza
+                    if (pendingChanges) {
+                        saveContent(true);
+                    }
+                } else {
+                    statusElement.className = 'badge bg-danger';
+                    statusElement.title = 'Offline - Le modifiche verranno sincronizzate al ripristino della connessione';
+                    showToast('Sei offline. Le modifiche verranno salvate in locale.', 'warning');
+                }
+            }
+            
+            // Inizializza l'applicazione
+            async function initApp() {
+                updateCounts();
+                updateOnlineStatus();
+                await loadSavedContent();
+                updatePreview();
+                
+                // Imposta l'ascoltatore per i cambiamenti di connessione
+                window.addEventListener('online', updateOnlineStatus);
+                window.addEventListener('offline', updateOnlineStatus);
+            }
+            
+            // Avvia l'applicazione
+            initApp();
+            
+            // Esempio di interazione con il pulsante di generazione
+            const generateButton = document.querySelector('.btn-primary');
+            generateButton.addEventListener('click', function() {
+                if (storyInput.value.trim() === '') {
+                    const exampleText = "# La Spada degli Antichi\n\nC'era una volta, in un regno lontano, una spada leggendaria...\n\n## Capitolo Primo\n\nIl giovane eroe si avventurò nella foresta proibita, dove si diceva che la spada fosse nascosta.\n\n* La foresta era buia e silenziosa\n* Ogni passo riecheggiava tra gli alberi\n* Un senso di inquietudine pervadeva l'aria";
+                    storyInput.value = exampleText;
+                    updatePreview();
+                    // Mostra un messaggio di esempio
+                    const toast = document.createElement('div');
+                    toast.className = 'position-fixed bottom-0 end-0 m-3 p-3 bg-success text-white rounded';
+                    toast.textContent = 'Testo di esempio caricato!';
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 3000);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
